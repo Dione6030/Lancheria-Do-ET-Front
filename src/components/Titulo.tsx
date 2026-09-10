@@ -2,7 +2,6 @@ import { Link } from "react-router-dom"
 import { useClienteStore } from "../context/ClienteContext"
 import { useNavigate } from "react-router-dom"
 import logo from "../assets/Logo.png"
-import titulo from "../assets/Título.png"
 
 export default function Titulo() {
     const { cliente, deslogaCliente } = useClienteStore()
@@ -19,11 +18,11 @@ export default function Titulo() {
     }
 
     return (
-        <nav className="border-orange-500 bg-orange-400 dark:bg-orange-800 dark:border-orange-700">
+        <nav className="border-orange-500 bg-claro-fundo dark:bg-escuro-fundo dark:border-orange-700">
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                 <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
                     <img src={logo} alt="Logo" className="h-32" />
-                    <img src={titulo} alt="Titulo" className="h-24" />
+                    <span className="text-2xl font-bold text-claro-texto dark:text-escuro-texto" style={{ fontFamily: 'Oxanium' }}>Lancheria do ET</span>
                 </Link>
                 <button data-collapse-toggle="navbar-solid-bg" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-solid-bg" aria-expanded="false">
                     <span className="sr-only">Open main menu</span>
