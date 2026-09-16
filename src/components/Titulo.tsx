@@ -22,7 +22,10 @@ export default function Titulo() {
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                 <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
                     <img src={logo} alt="Logo" className="h-32" />
-                    <span className="text-4xl font-bold text-claro-magenta drop-shadow-[0_0_4px_#007CBA] dark:text-escuro-magenta dark:drop-shadow-[0_0_4px_#20E3FF]" style={{ fontFamily: 'Oxanium' }}>ET LANCHES</span>
+                    <div className="flex flex-col items-center space-y-1 rtl:space-y-reverse">
+                        <span className="text-4xl font-bold text-claro-magenta drop-shadow-[0_0_4px_#007CBA] dark:text-escuro-magenta dark:drop-shadow-[0_0_4px_#20E3FF]" style={{ fontFamily: 'Oxanium' }}>ET LANCHES</span>
+                        <span className="text-lg font-bold text-claro-magenta drop-shadow-[0_0_4px_#007CBA] dark:text-escuro-magenta dark:drop-shadow-[0_0_4px_#20E3FF]" style={{ fontFamily: 'Oxanium' }}>LANCHES & GAMES</span>
+                    </div>
                 </Link>
                 <button data-collapse-toggle="navbar-solid-bg" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-solid-bg" aria-expanded="false">
                     <span className="sr-only">Open main menu</span>
