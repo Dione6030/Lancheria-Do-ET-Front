@@ -18,7 +18,7 @@ export default function Titulo() {
     }
 
     return (
-        <nav className="border-orange-500 bg-claro-fundo dark:bg-escuro-fundo dark:border-orange-700">
+        <nav className="border-orange-500 bg-claro-superficie dark:bg-escuro-superficie dark:border-orange-700">
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                 <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
                     <img src={logo} alt="Logo" className="h-32" />
@@ -50,9 +50,11 @@ export default function Titulo() {
                                     </span>
                                 </>
                                 :
-                                <Link to="/login" className="block py-2 px-3 md:p-0 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
-                                    Identifique-se
-                                </Link>
+                                <button className="px-6 py-4 bg-claro-button-fundo hover:bg-claro-button-fundo focus:ring-4 focus:outline-none focus:ring-claro-button-border text-claro-button-texto font-medium rounded-lg text-sm text-center dark:bg-escuro-button-fundo dark:hover:bg-escuro-button-fundo dark:focus:ring-escuro-button-border">
+                                    <Link to="/login" className="block py-2 px-3 md:p-0 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
+                                        Identifique-se
+                                    </Link>
+                                </button>
                             }
                         </li>
                     </ul>
