@@ -39,22 +39,22 @@ export default function AdminLogin() {
   }
 
   return (
-    <main className="max-w-screen-xl flex flex-col items-center mx-auto p-6">
-      <img src="../../fusca.png" alt="Revenda" style={{ width: 240 }}
+    <main className="max-w-screen-xl flex flex-col items-center mx-auto p-6 bg-claro-fundo dark:bg-escuro-fundo">
+      <img src="../assets/Logo.png" alt="logo" style={{ width: 240 }}
         className="d-block" />
-      <div className="max-w-sm">
-        <h1 className="text-3xl font-bold my-8">Admin: Revenda Herbie</h1>
+      <div className="w-full bg-claro-superficie rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-escuro-superficie dark:border-escuro-ciano">
+        <h1 className="text-3xl font-bold my-8 text-claro-texto dark:text-escuro-texto">Admin: ET LANCHES</h1>
         <form className="max-w-sm mx-auto"
           onSubmit={handleSubmit(verificaLogin)} >
           <div className="mb-5">
-            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">E-mail:</label>
-            <input type="email" id="email" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">E-mail:</label>
+            <input type="email" id="email" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500"
               {...register("email")}
               required />
           </div>
           <div className="mb-5">
-            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Senha:</label>
-            <input type="password" id="password" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Senha:</label>
+            <input type="password" id="password" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500"
               {...register("senha")}
               required />
           </div>

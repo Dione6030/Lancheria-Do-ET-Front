@@ -1,7 +1,7 @@
 import { FiUsers } from "react-icons/fi"
 import { Link } from "react-router-dom"
 import { useAdminStore } from "../context/AdminContext"
-import fusca from "../../assets/fusca.png"
+import Logo from "../../assets/Logo.png"
 
 export function Titulo() {
   const { admin } = useAdminStore()
@@ -10,7 +10,7 @@ export function Titulo() {
     <nav className="bg-blue-400 border-gray-200 dark:bg-gray-900 flex flex-wrap justify-between fixed top-0 left-0 w-full z-50">
       <div className="flex flex-wrap justify-between max-w-screen-xl p-4">
         <Link to="/admin" className="flex items-center space-x-3 rtl:space-x-reverse">
-          <img src={fusca} className="h-16" alt="Fusca" />
+          <img src={Logo} className="h-16" alt="Logo" />
           <span className="self-center text-3xl font-semibold whitespace-nowrap dark:text-white">
             Revenda Herbie: Admin
           </span>
