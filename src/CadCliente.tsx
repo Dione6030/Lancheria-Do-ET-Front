@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import './CadCliente.css'
-
 // ... não precisa mais com o Zod
 // type Inputs = {
 //     nome: string
@@ -24,26 +23,14 @@ const schema = z.object({
         .refine(value => value.includes(' '), {
             message: "Informe o nome completo (nome e sobrenome)",
         }),
-    email: z.email("Formato de email inválido")
-        .toLowerCase(),
-    cidade: z.string()
-        .min(3, "Cidade deve ter pelo menos 3 caracteres"),
-    // exemplos de validação de outros tipos de campo
-    //   idade: z.coerce.number()
-    //     .min(18, "Idade mínima: 18 anos")
-    //     .max(100, "Idade máxima: 100 anos"),
-    //   curso: z.enum(["ADS", "Redes", "Mkt"], {
-    //     errorMap: () => ({ message: "Selecione um curso" })
-    senha: z.string()
-        .min(8, "Senha deve ter pelo menos 8 caracteres")
-        .regex(/[a-z]/, "Senha deve conter, no mínimo, uma letra minúscula")
-        .regex(/[A-Z]/, "Senha deve conter, no mínimo, uma letra maiúscula")
-        .regex(/[0-9]/, "Senha deve conter, no mínimo, um número").regex(/[A-Z]/, "Senha deve conter uma letra maiúscula")
-        .regex(/[!@#$%^&*]/, "Senha deve conter, no mínimo, um caractere especial"),
-    senha2: z.string()
-}).refine((data) => data.senha == data.senha2, {  // Validação cross-field
-    message: "Senhas não coincidem",
-    path: ["senha2"]  // Erro aparece no campo senha2
+    endereco: z.string()
+        .min(10, "Endereço deve ter pelo menos 10 caracteres")
+        .max(100, "Endereço deve ter no máximo 100 caracteres")
+        .regex(/^[a-zA-Z0-9\s\.,'-]+$/, "Endereço contém caracteres inválidos"),
+    telefone: z.string()
+        .min(10, "Telefone deve ter pelo menos 10 caracteres")
+        .max(15, "Telefone deve ter no máximo 15 caracteres")
+        .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Formato de telefone inválido")
 })
 
 type FormData = z.infer<typeof schema>
@@ -64,10 +51,9 @@ export default function CadCliente() {
                 headers: { "Content-Type": "application/json" },
                 method: "POST",
                 body: JSON.stringify({
-                    nome: data.nome,
-                    cidade: data.cidade,
-                    email: data.email,
-                    senha: data.senha
+                    email: data.nome,
+                    endereco: data.endereco,
+                    telefone: data.telefone
                 })
             })
 
@@ -82,9 +68,9 @@ export default function CadCliente() {
             
             const responseData = await response.json()
             console.log(responseData)
-            // Erro específico de e-mail duplicado
-            if (responseData.erro == "E-mail já cadastrado") {
-                setError("email", { type: "server", message: responseData.erro })
+            // Erro específico de nome duplicado
+            if (responseData.erro == "nome já cadastrado") {
+                setError("nome", { type: "server", message: responseData.erro })
                 toast.error(responseData.erro)
                 return
             }
@@ -105,34 +91,22 @@ export default function CadCliente() {
                         <form className="space-y-4 md:space-y-6"
                             onSubmit={handleSubmit(cadastraCliente)}>
                             <div>
-                                <label htmlFor="email" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Nome:</label>
+                                <label htmlFor="nome" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Nome:</label>
                                 <input type="text" id="nome" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Seu nome completo" required
                                     {...register("nome")} />
                                 {errors.nome && <p role="alert" className="error">{errors.nome.message}</p>}
                             </div>
                             <div>
-                                <label htmlFor="email" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">E-mail:</label>
-                                <input type="email" id="email" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="nome@gmail.com" required
-                                    {...register("email")} />
-                                {errors.email && <p role="alert" className="error">{errors.email.message}</p>}
+                                <label htmlFor="endereco" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Endereço:</label>
+                                <input type="text" id="endereco" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Rua, número, bairro" required
+                                    {...register("endereco")} />
+                                {errors.endereco && <p role="alert" className="error">{errors.endereco.message}</p>}
                             </div>
                             <div>
-                                <label htmlFor="cidade" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Cidade:</label>
-                                <input type="text" id="cidade" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Sua cidade" required
-                                    {...register("cidade")} />
-                                {errors.cidade && <p role="alert" className="error">{errors.cidade.message}</p>}
-                            </div>
-                            <div>
-                                <label htmlFor="password" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Senha de Acesso:</label>
-                                <input type="password" id="password" placeholder="••••••••" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500" required
-                                    {...register("senha")} />
-                                {errors.senha && <p role="alert" className="error">{errors.senha.message}</p>}
-                            </div>
-                            <div>
-                                <label htmlFor="confirm-password" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Confirme a Senha:</label>
-                                <input type="password" id="confirm-password" placeholder="••••••••" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500" required
-                                    {...register("senha2")} />
-                                {errors.senha2 && <p role="alert" className="error">{errors.senha2.message}</p>}
+                                <label htmlFor="telefone" className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto">Telefone:</label>
+                                <input type="tel" id="telefone" className="bg-claro-form-fundo border border-claro-form-border text-claro-form-texto rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:placeholder-gray-400 dark:text-escuro-form-texto dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="(00) 00000-0000" required
+                                    {...register("telefone")} />
+                                {errors.telefone && <p role="alert" className="error">{errors.telefone.message}</p>}
                             </div>
                             <button type="submit" className="w-full text-claro-button-texto bg-claro-button-fundo hover:bg-claro-button-fundo focus:ring-4 focus:outline-none focus:ring-claro-button-border font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-escuro-button-fundo dark:hover:bg-escuro-button-fundo dark:focus:ring-escuro-button-border">Criar sua Conta</button>
                             <p className="text-sm font-light text-gray-500 dark:text-gray-400">
