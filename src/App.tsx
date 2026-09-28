@@ -2,13 +2,11 @@ import './App.css'
 import { CardLanche } from './components/CardLanches'
 import type { LancheType } from './util/LancheType'
 import { useEffect, useState } from 'react'
-import { useClienteStore } from './context/ClienteContext'
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export default function App() {
   const [lanches, setLanches] = useState<LancheType[]>([])
-  const { logaCliente } = useClienteStore()
 
   useEffect(() => {
     async function buscaDados() {
@@ -17,16 +15,6 @@ export default function App() {
       setLanches(dados)
     }
     buscaDados()
-
-    async function buscaCliente(id: string) {
-      const response = await fetch(`${API_URL}/clientes/${id}`)
-      const dados = await response.json()
-      logaCliente(dados)
-    }
-    if (localStorage.getItem("clienteKey")) {
-      const clienteId = localStorage.getItem("clienteKey")
-      buscaCliente(clienteId as string)
-    }
   }, [])
 
   const listaLanches = lanches.map((lanche) => (
