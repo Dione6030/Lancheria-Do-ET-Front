@@ -6,7 +6,7 @@ export function CardLanche({ data }: { data: LancheType }) {
         <div className="flex h-full flex-col overflow-hidden rounded-lg bg-claro-superficie shadow dark:border dark:border-escuro-ciano dark:bg-escuro-superficie">
             <img
                 className="h-48 w-full object-cover"
-                src={data.fotos[0]?.foto}
+                src={data.fotos[0]?.url}
                 alt={data.fotos[0]?.descricao || data.nome}
             />
             <div className="flex flex-1 flex-col p-5">
