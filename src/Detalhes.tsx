@@ -51,7 +51,7 @@ export default function Detalhes() {
 }, [params.LancheId])
 
   async function enviaPedido(data: Inputs) {
-    const response = await fetch(`${apiUrl}/propostas`, {
+    const response = await fetch(`${apiUrl}/pedidos`, {
       headers: {
         "Content-Type": "application/json"
       },
@@ -81,7 +81,7 @@ export default function Detalhes() {
 
         {fotos.length > 0 ? (
           <img
-            className="object-cover w-full h-96 rounded-t-lg"
+            className="w-full h-auto max-h-[20rem] object-contain rounded-t-lg bg-black"
             src={fotos[fotoAtual]?.url}
             alt={fotos[fotoAtual]?.descricao || lanche?.nome}
           />
