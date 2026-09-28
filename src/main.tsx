@@ -7,6 +7,7 @@ import App from './App.tsx'
 import Login from './Login.tsx'
 import CadCliente from './CadCliente.tsx'
 import CadUser from './CadUser.tsx'
+import Detalhes from './Detalhes.tsx'
 
 // -- Rotas Admin
 import AdminLayout from './admin/AdminLayout.tsx'
@@ -32,7 +33,8 @@ const rotas = createBrowserRouter([
       { index: true, element: <App /> },
       { path: '/login', element: <Login /> },
       { path: '/cadastro-cliente', element: <CadCliente /> },
-      { path: '/cadastro-user', element: <CadUser /> }
+      { path: '/cadastro-user', element: <CadUser /> },
+      { path: '/detalhes/:LancheId', element: <Detalhes /> }
     ],
   },
 ])
