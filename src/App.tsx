@@ -1,6 +1,38 @@
 import './App.css'
+import { CardLanche } from './components/CardLanches'
+import type { LancheType } from './util/LancheType'
+import { useEffect, useState } from 'react'
+import { useClienteStore } from './context/ClienteContext'
 
-function App() {
+const API_URL = import.meta.env.VITE_API_URL
+
+export default function App() {
+  const [lanches, setLanches] = useState<LancheType[]>([])
+  const { logaCliente } = useClienteStore()
+
+  useEffect(() => {
+    async function buscaDados() {
+      const response = await fetch(`${API_URL}/lanches`)
+      const dados = await response.json()
+      setLanches(dados)
+    }
+    buscaDados()
+
+    async function buscaCliente(id: string) {
+      const response = await fetch(`${API_URL}/clientes/${id}`)
+      const dados = await response.json()
+      logaCliente(dados)
+    }
+    if (localStorage.getItem("clienteKey")) {
+      const clienteId = localStorage.getItem("clienteKey")
+      buscaCliente(clienteId as string)
+    }
+  }, [])
+
+  const listaLanches = lanches.map((lanche) => (
+    <CardLanche key={lanche.id} data={lanche} />
+  ))
+
 
   return (
     <>
@@ -9,11 +41,9 @@ function App() {
           Lanches <span className="underline underline-offset-3 decoration-8 decoration-claro-magenta dark:decoration-escuro-magenta">em destaque</span>
         </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          
+          {listaLanches}
         </div>
       </div>
     </>
   )
 }
-
-export default App
