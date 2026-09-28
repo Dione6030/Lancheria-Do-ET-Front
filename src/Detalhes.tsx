@@ -16,19 +16,39 @@ export default function Detalhes() {
 
   const [lanche, setLanche] = useState<LancheType>()
   const [fotoAtual, setFotoAtual] = useState(0)
+  const [carregando, setCarregando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
   const { cliente } = useClienteStore()
 
   const { register, handleSubmit, reset } = useForm<Inputs>()
 
   useEffect(() => {
-    async function buscaDados() {
+  async function buscaDados() {
+    try {
+      setCarregando(true)
+      setErro(null)
+
       const response = await fetch(`${apiUrl}/lanches/${params.LancheId}`)
+      console.log("status:", response.status, "url:", response.url)
+
+      if (!response.ok) {
+        throw new Error(`API respondeu ${response.status}`)
+      }
+
       const dados = await response.json()
+      console.log("dados recebidos:", dados)
+
       setLanche(dados)
       setFotoAtual(0)
+    } catch (e) {
+      console.error(e)
+      setErro("Não foi possível carregar este lanche.")
+    } finally {
+      setCarregando(false)
     }
-    buscaDados()
-  }, [params.LancheId])
+  }
+  buscaDados()
+}, [params.LancheId])
 
   async function enviaPedido(data: Inputs) {
     const response = await fetch(`${apiUrl}/propostas`, {
@@ -53,6 +73,8 @@ export default function Detalhes() {
 
   const fotos = lanche?.fotos ?? []
 
+  if (carregando) return <p className="p-6 text-center dark:text-escuro-texto">Carregando...</p>
+  if (erro || !lanche) return <p className="p-6 text-center dark:text-escuro-texto">{erro ?? "Lanche não encontrado."}</p>
   return (
     <section className="bg-claro-fundo dark:bg-escuro-fundo">
       <div className="mt-6 mx-auto max-w-5xl bg-claro-superficie border border-gray-200 rounded-lg shadow dark:border-escuro-ciano dark:bg-escuro-superficie">
