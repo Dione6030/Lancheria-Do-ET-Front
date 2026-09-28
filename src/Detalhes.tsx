@@ -1,5 +1,5 @@
 import type { LancheType } from "./util/LancheType";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useClienteStore } from "./context/ClienteContext";
 import { useForm } from "react-hook-form";
@@ -8,7 +8,8 @@ import { toast } from "sonner";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 type Inputs = {
-  descricao: string;
+  pagamento: string;
+  observacoes?: string;
 };
 
 type PerfilType = {
@@ -107,6 +108,7 @@ export default function Detalhes() {
         body: JSON.stringify({
           clienteTabelaId: perfil.id,
           pagamento: data.pagamento,
+          observacoes: data.observacoes?.trim() || undefined,
           itens: [{ itemId: lanche.id, quantidade: 1 }],
         }),
       });
@@ -240,6 +242,21 @@ export default function Detalhes() {
                     </option>
                   ))}
                 </select>
+
+                <label
+                  htmlFor="observacoes"
+                  className="block mb-2 text-sm font-medium text-claro-texto dark:text-escuro-texto"
+                >
+                  Observações (opcional)
+                </label>
+                <textarea
+                  id="observacoes"
+                  rows={3}
+                  maxLength={500}
+                  placeholder="Ex.: sem tomate, molho à parte..."
+                  className="mb-4 bg-claro-form-fundo border border-claro-form-border text-claro-form-texto text-sm rounded-lg block w-full p-2.5 dark:bg-escuro-form-fundo dark:border-escuro-form-border dark:text-escuro-form-texto"
+                  {...register("observacoes")}
+                />
 
                 <button
                   type="submit"
