@@ -1,90 +1,88 @@
-import './MinhasPropostas.css'
-import { useEffect, useState } from "react";
-import { useClienteStore } from "./context/ClienteContext";
-import type { PropostaType } from "./utils/PropostaType";
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import { useClienteStore } from "./context/ClienteContext"
+import { CardPedido } from "./components/CardPedido"
+import type { PedidoType } from "./util/PedidoType"
 
 const apiUrl = import.meta.env.VITE_API_URL
 
-export default function Propostas() {
-    const [propostas, setPropostas] = useState<PropostaType[]>([])
+async function buscaPedidos(): Promise<PedidoType[]> {
+    const token = localStorage.getItem("token")
+
+    const response = await fetch(`${apiUrl}/pedidos`, {
+        headers: { Authorization: `Bearer ${token}` },
+    })
+
+    if (!response.ok) {
+        throw new Error(`API respondeu ${response.status}`)
+    }
+    return response.json()
+}
+
+function Mensagem({ children }: { children: React.ReactNode }) {
+    return (
+        <h2 className="mt-10 text-2xl font-extrabold tracking-tight text-claro-texto dark:text-escuro-texto">
+            {children}
+        </h2>
+    )
+}
+
+export default function MeusPedidos() {
     const { cliente } = useClienteStore()
+    const [pedidos, setPedidos] = useState<PedidoType[]>([])
+    const [carregando, setCarregando] = useState(true)
+    const [erro, setErro] = useState<string | null>(null)
 
     useEffect(() => {
-        async function buscaDados() {
-            const response = await fetch(`${apiUrl}/propostas/${cliente.id}`)
-            const dados = await response.json()
-            setPropostas(dados)
+        if (!cliente.id) {
+            setCarregando(false)
+            return
         }
-        buscaDados()
-    }, [])
 
-    // para retornar apenas a data do campo no banco de dados
-    // 2024-10-10T22:46:27.227Z => 10/10/2024
-    function dataDMA(data: string) {
-        const ano = data.substring(0, 4)
-        const mes = data.substring(5, 7)
-        const dia = data.substring(8, 10)
-        return dia + "/" + mes + "/" + ano
+        buscaPedidos()
+            .then(setPedidos)
+            .catch(() => setErro("Não foi possível carregar seus pedidos."))
+            .finally(() => setCarregando(false))
+    }, [cliente.id])
+
+    function conteudo() {
+        if (!cliente.id) {
+            return (
+                <Mensagem>
+                    😎 <Link to="/login" className="underline">Identifique-se</Link> para ver seus pedidos.
+                </Mensagem>
+            )
+        }
+        if (carregando) return <Mensagem>Carregando...</Mensagem>
+        if (erro) return <Mensagem>{erro}</Mensagem>
+        if (pedidos.length === 0) {
+            return (
+                <Mensagem>
+                    🙄 Você ainda não fez pedidos.{" "}
+                    <Link to="/" className="underline">Veja o cardápio</Link>
+                </Mensagem>
+            )
+        }
+        return (
+            <div className="flex flex-col gap-4">
+                {pedidos.map((pedido) => (
+                    <CardPedido key={pedido.id} data={pedido} />
+                ))}
+            </div>
+        )
     }
 
-    const propostasTable = propostas.map(proposta => (
-        <tr key={proposta.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-            <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                <p><b>{proposta.carro.marca.nome} {proposta.carro.modelo}</b></p>
-                <p className='mt-3'>Ano: {proposta.carro.ano} -
-                    R$: {Number(proposta.carro.preco).toLocaleString("pt-br", { minimumFractionDigits: 2 })}</p>
-            </th>
-            <td className="px-6 py-4">
-                <img src={proposta.carro.foto} className="fotoCarro" alt="Foto Carro" />
-            </td>
-            <td className="px-6 py-4">
-                <p><b>{proposta.descricao}</b></p>
-                <p><i>Enviado em: {dataDMA(proposta.createdAt)}</i></p>
-            </td>
-            <td className="px-6 py-4">
-                {proposta.resposta ?
-                    <>
-                        <p><b>{proposta.resposta}</b></p>
-                        <p><i>Respondido em: {dataDMA(proposta.updatedAt as string)}</i></p>
-                    </>
-                    :
-                    <i>Aguardando...</i>}
-            </td>
-        </tr>
-    ))
-
     return (
-        <section className="max-w-7xl mx-auto">
-            <h1 className="mb-6 mt-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
-                Listagem de <span className="underline underline-offset-3 decoration-8 decoration-orange-400 dark:decoration-orange-600">Minhas Propostas</span></h1>
-
-            {propostas.length == 0 ?
-                <h2 className="mb-4 mt-10 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-4xl dark:text-white">
-                   &nbsp;&nbsp; Ah... Você ainda não fez propostas para os nossos veículos. 🙄
-                </h2>
-                :
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
-                            <th scope="col" className="px-6 py-3">
-                                Veículo
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Foto
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Proposta
-                            </th>
-                            <th scope="col" className="px-6 py-3">
-                                Resposta
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {propostasTable}
-                    </tbody>
-                </table>
-            }
+        <section className="bg-claro-fundo px-4 pb-10 dark:bg-escuro-fundo">
+            <div className="mx-auto max-w-4xl">
+                <h1 className="mb-6 mt-4 text-4xl font-extrabold leading-none tracking-tight text-claro-ciano md:text-5xl dark:text-escuro-ciano">
+                    Meus{" "}
+                    <span className="underline underline-offset-3 decoration-8 decoration-claro-magenta dark:decoration-escuro-magenta">
+                        Pedidos
+                    </span>
+                </h1>
+                {conteudo()}
+            </div>
         </section>
     )
 }
