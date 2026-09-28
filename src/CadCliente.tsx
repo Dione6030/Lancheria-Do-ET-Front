@@ -6,16 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import './CadCliente.css'
-// ... não precisa mais com o Zod
-// type Inputs = {
-//     nome: string
-//     email: string
-//     cidade: string
-//     senha: string
-//     senha2: string
-// }
 
-// Schema Zod com validações
 const schema = z.object({
     nome: z.string()
         .min(6, "Nome deve ter pelo menos 6 caracteres")
@@ -30,7 +21,6 @@ const schema = z.object({
     telefone: z.string()
         .min(10, "Telefone deve ter pelo menos 10 caracteres")
         .max(15, "Telefone deve ter no máximo 15 caracteres")
-        .regex(/^\(\d{2}\) \d{5}-\d{4}$/, "Formato de telefone inválido")
 })
 
 type FormData = z.infer<typeof schema>
@@ -46,12 +36,23 @@ export default function CadCliente() {
 
     async function cadastraCliente(data: FormData) {
 
+        const token = localStorage.getItem("token")
+
+        if (!token) {
+            toast.error("Sua sessão não foi encontrada. Faça login para continuar.")
+            navigate("/login", { replace: true })
+            return
+        }
+
         const response = await
             fetch(`${apiUrl}/clientes`, {
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 method: "POST",
                 body: JSON.stringify({
-                    email: data.nome,
+                    nome: data.nome,
                     endereco: data.endereco,
                     telefone: data.telefone
                 })
@@ -111,6 +112,9 @@ export default function CadCliente() {
                             <button type="submit" className="w-full text-claro-button-texto bg-claro-button-fundo hover:bg-claro-button-fundo focus:ring-4 focus:outline-none focus:ring-claro-button-border font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-escuro-button-fundo dark:hover:bg-escuro-button-fundo dark:focus:ring-escuro-button-border">Criar sua Conta</button>
                             <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                                 Já possui uma conta? <Link to="/login" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Faça Login</Link>
+                            </p>
+                            <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+                                Ainda não possui conta de usuário? <Link to="/cadastro-user" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Cadastre-se</Link>
                             </p>
                         </form>
                     </div>
