@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { toast } from "sonner"
 import { useClienteStore } from "./context/ClienteContext"
+import { useAdminStore } from "./admin/context/AdminContext"
+import { dadosDoToken } from "./util/token"
 
 type Inputs = {
     email: string
@@ -16,39 +18,45 @@ const apiUrl = import.meta.env.VITE_API_URL
 export default function Login() {
     const { register, handleSubmit } = useForm<Inputs>()    
     const { logaCliente } = useClienteStore()
+    const { logaAdmin } = useAdminStore()
 
     const navigate = useNavigate()
 
     async function verificaLogin(data: Inputs) {
-        // alert(`${data.email} ${data.senha} ${data.manter}`)
-        const response = await 
-          fetch(`${apiUrl}/clientes/login`, {
+        const response = await
+          fetch(`${apiUrl}/login`, {
             headers: {"Content-Type": "application/json"},
             method: "POST",
             body: JSON.stringify({ email: data.email, senha: data.senha })
           })
         
-        // console.log(response)
         if (response.status == 200) {
-            // toast.success("Ok!")            
             const dados = await response.json()
+            const usuario = dados.token ? dadosDoToken(dados.token) : null
 
-            // "coloca" os dados do cliente no contexto
-            logaCliente(dados)
-            
-            // se o cliente indicou que quer se manter conectado
-            // salvamos os dados (id) dele em localStorage
-            if (data.manter) {
-                localStorage.setItem("clienteKey", dados.id)
-            } else {
-                // se indicou que não quer permanecer logado e tem
-                // uma chave (anteriormente) salva, remove-a
-                if (localStorage.getItem("clienteKey")) {
-                    localStorage.removeItem("clienteKey")
-                }
+            if (!usuario) {
+                toast.error("Não foi possível iniciar sua sessão.")
+                return
             }
 
-            // carrega a página principal, após login do cliente
+            if (usuario.nivelAcesso === 'ADMIN') {
+                localStorage.setItem('token', dados.token)
+                logaAdmin({
+                    id: usuario.id,
+                    email: usuario.email,
+                    nome: usuario.email
+                })
+                toast.success("Login administrativo realizado com sucesso!")
+                navigate("/admin", { replace: true })
+                return
+            }
+
+            if (!logaCliente(dados.token)) {
+                toast.error("Não foi possível iniciar sua sessão.")
+                return
+            }
+
+            toast.success("Login realizado com sucesso!")
             navigate("/")
         } else {
             toast.error("Erro... Login ou senha incorretos")
@@ -98,7 +106,7 @@ export default function Login() {
                                 Entrar
                             </button>
                             <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                                Ainda não possui conta? <Link to="/cadastro" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Cadastre-se</Link>
+                                Ainda não possui conta? <Link to="/cadastro-user" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Cadastre-se</Link>
                             </p>
                         </form>
                     </div>
