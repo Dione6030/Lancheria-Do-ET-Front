@@ -16,9 +16,9 @@ export default function AdminLayout() {
 
   useEffect(() => {
     if (Object.keys(admin).length == 0) {
-      navigate("/admin/login", { replace: true })
+      navigate("/login", { replace: true })
     }
-  }, [])
+  }, [admin, navigate])
 
   if (Object.keys(admin).length == 0) {
     return null
