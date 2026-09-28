@@ -8,11 +8,12 @@ import Login from './Login.tsx'
 import CadCliente from './CadCliente.tsx'
 import CadUser from './CadUser.tsx'
 import Detalhes from './Detalhes.tsx'
+import MeusPedidos from './MeusPedidos.tsx'
 
 // -- Rotas Admin
 import AdminLayout from './admin/AdminLayout.tsx'
 import AdminDashboard from './admin/AdminDashboard.tsx'
-import NovoLanche from './admin/NovoLanche.tsx'
+import CadastroLanches from './admin/CadastroLanches.tsx'
 
 import { Layout } from './Layout.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
@@ -23,7 +24,7 @@ const rotas = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <AdminDashboard /> },
-      { path: 'novo-lanche', element: <NovoLanche /> }
+      { path: 'cadastro-lanches', element: <CadastroLanches /> }
     ]
   },
   {
@@ -34,7 +35,8 @@ const rotas = createBrowserRouter([
       { path: '/login', element: <Login /> },
       { path: '/cadastro-cliente', element: <CadCliente /> },
       { path: '/cadastro-user', element: <CadUser /> },
-      { path: '/detalhes/:LancheId', element: <Detalhes /> }
+      { path: '/detalhes/:LancheId', element: <Detalhes /> },
+      { path: '/meus-pedidos', element: <MeusPedidos /> }
     ],
   },
 ])

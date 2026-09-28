@@ -21,26 +21,26 @@ export function MenuLateral() {
         <ul className="space-y-2 font-medium">
           <li>
             <Link to="/admin" className="flex items-center p-2">
-              <span className="h-5 text-gray-600 text-2xl">
+              <span className="h-5 text-gray-600 text-2xl dark:text-gray-400">
                 <BiSolidDashboard />
               </span>
-              <span className="ms-2 mt-1">Visão Geral</span>
+              <span className="ms-2 mt-1 dark:text-gray-400">Visão Geral</span>
             </Link>
           </li>
           <li>
-            <Link to="/admin/novo-lanche" className="flex items-center p-2">
-              <span className="h-5 text-gray-600 text-2xl">
+            <Link to="/admin/cadastro-lanches" className="flex items-center p-2">
+              <span className="h-5 text-gray-600 text-2xl dark:text-gray-400">
                 <IoFastFoodOutline />
               </span>
-              <span className="ms-2 mt-1">Novo lanche</span>
+              <span className="ms-2 mt-1 dark:text-gray-400">Cadastro de Lanches</span>
             </Link>
           </li>
           <li>
             <span className="flex items-center p-2 cursor-pointer">
-              <span className="h-5 text-gray-600 text-2xl">
+              <span className="h-5 text-gray-600 text-2xl dark:text-gray-400">
                 <IoExitOutline />
               </span>
-              <span className="ms-2 mt-1" onClick={adminSair}>Sair do Sistema</span>
+              <span className="ms-2 mt-1 dark:text-gray-400" onClick={adminSair}>Sair do Sistema</span>
             </span>
           </li>
         </ul>
