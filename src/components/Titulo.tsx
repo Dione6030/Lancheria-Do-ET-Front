@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import { useClienteStore } from "../context/ClienteContext"
 import { useNavigate } from "react-router-dom"
 import logo from "../assets/Logo.png"
+import usuarioPadrao from "../assets/Usuario-padrao.png"
 
 export default function Titulo() {
     const { cliente, deslogaCliente } = useClienteStore()
@@ -10,9 +11,6 @@ export default function Titulo() {
     function clienteSair() {
         if (confirm("Confirma saída do sistema?")) {
             deslogaCliente()
-            if (localStorage.getItem("clienteKey")) {
-                localStorage.removeItem("clienteKey")
-            }
             navigate("/login")
         }
     }
@@ -38,16 +36,14 @@ export default function Titulo() {
                         <li>
                             {cliente.id ?
                                 <>
-                                    <span className="text-black">
-                                        {cliente.nome}
-                                    </span>&nbsp;&nbsp;
-                                    <Link to="/minhasPropostas" className="text-white font-bold bg-gray-600 hover:bg-gray-700 focus:ring-2 focus:outline-none focus:ring-gray-400 rounded-lg text-sm w-full sm:w-auto px-3 py-2 text-center dark:bg-gray-500 dark:hover:bg-gray-600 dark:focus:ring-gray-700">
-                                        Minhas Propostas
+                                    <Link to="/meus-pedidos" className="text-claro-button-texto bg-claro-button-fundo hover:bg-claro-button-fundo focus:ring-4 focus:outline-none hover:ring-claro-button-border font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-escuro-button-fundo dark:hover:bg-escuro-button-fundo dark:hover:ring-escuro-button-border">
+                                        Meus Pedidos
                                     </Link>&nbsp;&nbsp;
                                     <span className="cursor-pointer font-bold text-gray-600"
                                         onClick={clienteSair}>
                                         Sair
                                     </span>
+                                    <img src={usuarioPadrao} alt="Usuário logado" className="inline-block h-16 w-16 m-4 rounded-full object-cover" />
                                 </>
                                 :
                                 <button className="px-6 py-4 bg-claro-button-fundo hover:bg-claro-button-fundo focus:ring-4 focus:outline-none focus:ring-claro-button-border text-claro-button-texto font-medium rounded-lg text-sm text-center dark:bg-escuro-button-fundo dark:hover:bg-escuro-button-fundo dark:focus:ring-escuro-button-border">
