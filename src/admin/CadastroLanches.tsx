@@ -156,7 +156,7 @@ async function abrirFormularioNovoLanche(): Promise<FormData | undefined> {
 // ---------- Chamadas à API ----------
 
 async function buscarLanches(): Promise<LancheType[]> {
-  const response = await fetch(`${apiUrl}/lanches`)
+  const response = await fetch(`${apiUrl}/lanches/admin`)
 
   if (!response.ok) {
     throw new Error()
