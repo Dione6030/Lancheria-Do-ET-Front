@@ -2,61 +2,122 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { LancheType } from "../util/LancheType";
 
-const apiUrl = import.meta.env.VITE_API_URL
+const apiUrl = import.meta.env.VITE_API_URL;
 
 type Inputs = {
-    termo: string
-}
+  termo: string;
+};
 
 type InputPesquisaProps = {
-    setLanches: React.Dispatch<React.SetStateAction<LancheType[]>>
-}
+  setLanches: React.Dispatch<React.SetStateAction<LancheType[]>>;
+};
 
 export function InputPesquisa({ setLanches }: InputPesquisaProps) {
-    const { register, handleSubmit, reset } = useForm<Inputs>()
+  const { register, handleSubmit, reset } = useForm<Inputs>();
 
-    async function enviaPesquisa(data: Inputs) {
-        // alert(data.termo)
-        if (data.termo.length < 2) {
-            toast.error("Informe, no mínimo, 2 caracteres")
-            return
-        }
+  async function buscarLanches(caminho: string) {
+    try {
+      const response = await fetch(`${apiUrl}${caminho}`);
+      if (!response.ok) throw new Error("Resposta inválida da API");
 
-        const response = await fetch(`${apiUrl}/carros/pesquisa/${data.termo}`)
-        const dados = await response.json()
-        // console.log(dados)
-        setLanches(dados)
+      const dados = await response.json();
+      setLanches(Array.isArray(dados) ? dados : []);
+    } catch {
+      toast.error("Não foi possível buscar os lanches. Tente novamente.");
+    }
+  }
+
+  async function enviaPesquisa(data: Inputs) {
+    const termo = data.termo.trim();
+
+    if (termo.length < 2) {
+      toast.error("Informe, no mínimo, 2 caracteres");
+      return;
     }
 
-    async function mostraDestaques() {
-        const response = await fetch(`${apiUrl}/carros/destaques`)
-        const dados = await response.json()
-        reset({ termo: "" })
-        setLanches(dados)
-    }
+    await buscarLanches(`/lanches/pesquisa/${encodeURIComponent(termo)}`);
+  }
 
-    return (
-        <div className="flex mx-auto max-w-5xl mt-3">
-            <form className="flex-1" onSubmit={handleSubmit(enviaPesquisa)}>
-                <label htmlFor="default-search" className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                        </svg>
-                    </div>
-                    <input type="search" id="default-search" className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="Informe modelo, marca, ano ou preço máximo" required 
-                        {...register('termo')} />
-                    <button type="submit" className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        Pesquisar
-                    </button>
-                </div>
-            </form>
-            <button type="button" className="ms-3 mt-2 focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
-                    onClick={mostraDestaques}>
-                Exibir Destaques
+  async function mostraDestaques() {
+    reset({ termo: "" });
+    await buscarLanches("/lanches/destaques");
+  }
+
+  return (
+    <div className="flex flex-col sm:flex-row items-stretch gap-3 mx-auto max-w-5xl mt-4 px-4">
+      <form className="flex-1" onSubmit={handleSubmit(enviaPesquisa)}>
+        <label htmlFor="default-search" className="sr-only">
+          Pesquisar lanche
+        </label>
+
+        {/* Borda em gradiente neon + brilho quando o campo está em foco */}
+        <div
+          className="rounded-xl p-[1.5px] transition-shadow duration-300
+                                bg-gradient-to-r from-claro-primaria via-claro-magenta to-claro-ciano
+                                dark:from-escuro-primaria dark:via-escuro-magenta dark:to-escuro-ciano
+                                focus-within:shadow-[0_0_18px_rgba(109,40,217,0.45)]
+                                dark:focus-within:shadow-[0_0_22px_rgba(139,61,255,0.65)]"
+        >
+          <div className="relative rounded-[10px] bg-claro-form-fundo dark:bg-escuro-form-fundo">
+            <div className="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none">
+              <svg
+                className="w-5 h-5 text-claro-ciano dark:text-escuro-ciano dark:drop-shadow-[0_0_6px_#20E3FF]"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                />
+              </svg>
+            </div>
+
+            <input
+              type="search"
+              id="default-search"
+              autoComplete="off"
+              placeholder="Busque por lanche ou tipo (ex.: X-Burger, bebida...)"
+              required
+              className="block w-full py-4 ps-12 pe-36 text-sm rounded-[10px] bg-transparent outline-none
+                                       text-claro-form-texto placeholder:text-claro-texto-secundario
+                                       dark:text-escuro-form-texto dark:placeholder:text-escuro-texto-secundario"
+              {...register("termo")}
+            />
+
+            <button
+              type="submit"
+              className="absolute end-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg text-sm font-bold uppercase tracking-wider
+                         border transition-all duration-200 cursor-pointer
+                       bg-claro-button-fundo border-claro-button-border text-claro-button-texto
+                       dark:bg-escuro-button-fundo dark:border-escuro-button-border dark:text-escuro-button-texto
+                         hover:brightness-125 hover:shadow-[0_0_14px_rgba(112,0,255,0.8)]
+                         active:scale-95"
+            >
+              Pesquisar
             </button>
+          </div>
         </div>
-    )
+      </form>
+
+      <button
+        type="button"
+        onClick={mostraDestaques}
+        className="px-5 py-4 rounded-xl text-sm font-bold uppercase tracking-wider border-2 bg-transparent
+                           transition-all duration-200 cursor-pointer
+                           border-claro-magenta text-claro-magenta
+                           dark:border-escuro-magenta dark:text-escuro-magenta
+                           hover:bg-claro-magenta hover:text-white
+                           dark:hover:bg-escuro-magenta dark:hover:text-escuro-fundo
+                           hover:shadow-[0_0_18px_rgba(255,60,172,0.6)]
+                           active:scale-95"
+      >
+        Exibir Destaques
+      </button>
+    </div>
+  );
 }

@@ -1,4 +1,5 @@
 import './App.css'
+import { InputPesquisa } from './components/InputPesquisa'
 import { CardLanche } from './components/CardLanches'
 import type { LancheType } from './util/LancheType'
 import { useEffect, useState } from 'react'
@@ -24,6 +25,7 @@ export default function App() {
 
   return (
     <>
+      <InputPesquisa setLanches={setLanches} />
       <div className="max-w-7xl mx-auto">
         <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-claro-ciano md:text-5xl lg:text-6xl dark:text-escuro-ciano">
           Lanches <span className="underline underline-offset-3 decoration-8 decoration-claro-magenta dark:decoration-escuro-magenta">em destaque</span>
