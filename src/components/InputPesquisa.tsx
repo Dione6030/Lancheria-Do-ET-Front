@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { LancheType } from "../util/LancheType";
+import type { ModoLista } from "../util/ModoListaType";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -10,20 +11,28 @@ type Inputs = {
 
 type InputPesquisaProps = {
   setLanches: React.Dispatch<React.SetStateAction<LancheType[]>>;
+  modo: ModoLista;
+  setModo: React.Dispatch<React.SetStateAction<ModoLista>>;
 };
 
-export function InputPesquisa({ setLanches }: InputPesquisaProps) {
+export function InputPesquisa({
+  setLanches,
+  modo,
+  setModo,
+}: InputPesquisaProps) {
   const { register, handleSubmit, reset } = useForm<Inputs>();
 
-  async function buscarLanches(caminho: string) {
+  async function buscarLanches(caminho: string): Promise<boolean> {
     try {
       const response = await fetch(`${apiUrl}${caminho}`);
       if (!response.ok) throw new Error("Resposta inválida da API");
 
       const dados = await response.json();
       setLanches(Array.isArray(dados) ? dados : []);
+      return true;
     } catch {
       toast.error("Não foi possível buscar os lanches. Tente novamente.");
+      return false;
     }
   }
 
@@ -35,12 +44,26 @@ export function InputPesquisa({ setLanches }: InputPesquisaProps) {
       return;
     }
 
-    await buscarLanches(`/lanches/pesquisa/${encodeURIComponent(termo)}`);
+    const sucesso = await buscarLanches(
+      `/lanches/pesquisa/${encodeURIComponent(termo)}`,
+    );
+    if (sucesso) setModo("pesquisa");
   }
 
   async function mostraDestaques() {
     reset({ termo: "" });
-    await buscarLanches("/lanches/destaques");
+    const sucesso = await buscarLanches("/lanches/destaques");
+    if (sucesso) setModo("destaques");
+  }
+
+  async function mostraTodos() {
+    reset({ termo: "" });
+    const sucesso = await buscarLanches("/lanches");
+    if (sucesso) setModo("todos");
+  }
+
+  function alternaDestaques() {
+    return modo === "destaques" ? mostraTodos() : mostraDestaques();
   }
 
   return (
@@ -106,7 +129,7 @@ export function InputPesquisa({ setLanches }: InputPesquisaProps) {
 
       <button
         type="button"
-        onClick={mostraDestaques}
+        onClick={alternaDestaques}
         className="px-5 py-4 rounded-xl text-sm font-bold uppercase tracking-wider border-2 bg-transparent
                            transition-all duration-200 cursor-pointer
                            border-claro-magenta text-claro-magenta
@@ -116,7 +139,7 @@ export function InputPesquisa({ setLanches }: InputPesquisaProps) {
                            hover:shadow-[0_0_18px_rgba(255,60,172,0.6)]
                            active:scale-95"
       >
-        Exibir Destaques
+        {modo === "destaques" ? "Mostrar todos" : "Mostrar destaques"}
       </button>
     </div>
   );

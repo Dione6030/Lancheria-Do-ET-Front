@@ -1,0 +1,1 @@
+export type ModoLista = 'todos' | 'destaques' | 'pesquisa'
