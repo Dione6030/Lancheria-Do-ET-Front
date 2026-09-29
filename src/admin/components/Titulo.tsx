@@ -16,7 +16,7 @@ export function Titulo() {
           </span>
         </Link>
       </div>
-      <div className="flex me-4 items-center font-bold">
+      <div className="flex me-4 items-center font-bold dark:text-escuro-texto">
         <FiUsers className="mr-2" />
         {admin.nome}
       </div>
