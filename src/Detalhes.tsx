@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useClienteStore } from "./context/ClienteContext";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 
 import { TabelaNutricional } from "./components/TabelaNutricional";
 import type { TabelaNutricionalType } from "./util/TabelaNutricionalType";
@@ -49,6 +50,126 @@ async function buscaTabelaNutricional(
 
   const dados = await response.json();
   return dados.tabelaNutricional;
+}
+
+type DadosAvaliacao = { nota: number; comentario: string };
+
+type RespostaAvaliacao = { status: number; erro?: string };
+
+function temaDoAlerta() {
+  const escuro = document.documentElement.classList.contains("dark");
+  return escuro ? { background: "#1f2937", color: "#f3f4f6" } : {};
+}
+
+async function abreFormularioAvaliacao(): Promise<DadosAvaliacao | null> {
+  let nota = 0;
+
+  const resultado = await Swal.fire({
+    ...temaDoAlerta(),
+    title: "Avaliar lanche",
+    html: `
+      <div id="estrelas" style="display:flex;justify-content:center;gap:4px;margin-bottom:8px">
+        ${[1, 2, 3, 4, 5]
+          .map(
+            (n) => `
+          <button type="button" data-nota="${n}" aria-label="${n} estrela(s)"
+            style="font-size:2.25rem;line-height:1;background:none;border:none;cursor:pointer;color:#9ca3af">★</button>`,
+          )
+          .join("")}
+      </div>
+      <textarea id="comentario" class="swal2-textarea" maxlength="1000"
+        placeholder="Conte o que achou (opcional)"></textarea>`,
+    showCancelButton: true,
+    confirmButtonText: "Enviar avaliação",
+    cancelButtonText: "Cancelar",
+    focusConfirm: false,
+    didOpen: () => {
+      const botoes =
+        Swal.getHtmlContainer()!.querySelectorAll<HTMLButtonElement>(
+          "[data-nota]",
+        );
+
+      const pintaEstrelas = (ate: number) =>
+        botoes.forEach((b) => {
+          b.style.color = Number(b.dataset.nota) <= ate ? "#facc15" : "#9ca3af";
+        });
+
+      botoes.forEach((b) =>
+        b.addEventListener("click", () => {
+          nota = Number(b.dataset.nota);
+          pintaEstrelas(nota);
+        }),
+      );
+    },
+    preConfirm: () => {
+      if (nota === 0) {
+        Swal.showValidationMessage("Escolha uma nota de 1 a 5 estrelas");
+        return false;
+      }
+
+      const campo =
+        Swal.getHtmlContainer()!.querySelector<HTMLTextAreaElement>(
+          "#comentario",
+        );
+      return { nota, comentario: campo?.value.trim() ?? "" };
+    },
+  });
+
+  return resultado.isConfirmed ? resultado.value : null;
+}
+
+async function enviaAvaliacao(
+  lancheId: number,
+  dados: DadosAvaliacao,
+): Promise<RespostaAvaliacao> {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${apiUrl}/lanches/${lancheId}/avaliacoes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      nota: dados.nota,
+      comentario: dados.comentario || undefined,
+    }),
+  });
+
+  if (response.status === 201) return { status: 201 };
+
+  const corpo = await response.json().catch(() => null);
+  const erro = typeof corpo?.erro === "string" ? corpo.erro : undefined;
+  return { status: response.status, erro };
+}
+
+function mostraResultado({ status, erro }: RespostaAvaliacao) {
+  const tema = temaDoAlerta();
+
+  if (status === 201) {
+    return Swal.fire({
+      ...tema,
+      icon: "success",
+      title: "Obrigado pela avaliação!",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  }
+
+  if (status === 409) {
+    return Swal.fire({
+      ...tema,
+      icon: "info",
+      title: "Você já avaliou este lanche.",
+    });
+  }
+
+  return Swal.fire({
+    ...tema,
+    icon: "error",
+    title: "Não foi possível enviar",
+    text: erro ?? "Tente novamente em instantes.",
+  });
 }
 
 export default function Detalhes() {
@@ -149,6 +270,22 @@ export default function Detalhes() {
     }
   }
 
+  async function avaliaLanche() {
+    if (!lanche) return;
+
+    const dados = await abreFormularioAvaliacao();
+    if (!dados) return;
+
+    try {
+      mostraResultado(await enviaAvaliacao(lanche.id, dados));
+    } catch {
+      mostraResultado({
+        status: 0,
+        erro: "Não foi possível se conectar ao servidor.",
+      });
+    }
+  }
+
   const fotos = lanche?.fotos ?? [];
 
   if (carregando)
@@ -233,6 +370,16 @@ export default function Detalhes() {
           )}
 
           {tabela && <TabelaNutricional tabela={tabela} />}
+
+          {cliente.id && perfil && (
+            <button
+              type="button"
+              onClick={avaliaLanche}
+              className="mb-6 w-full font-medium rounded-lg text-sm px-5 py-2.5 text-center border border-claro-magenta text-claro-magenta hover:bg-claro-magenta hover:text-white dark:border-escuro-magenta dark:text-escuro-magenta dark:hover:bg-escuro-magenta dark:hover:text-white"
+            >
+              ⭐ Avaliar este lanche
+            </button>
+          )}
 
           {lanche && !lanche.disponivel ? (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
