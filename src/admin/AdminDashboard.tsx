@@ -1,6 +1,7 @@
 import './AdminDashboard.css'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import GraficosDashboard from './components/GraficosDashboard'
 
 const apiUrl = import.meta.env.VITE_API_URL
 
@@ -71,6 +72,7 @@ export default function AdminDashboard() {
           <p className="mt-2 font-medium text-claro-texto dark:text-escuro-texto">Clientes cadastrados</p>
         </div>
       </div>
+      <GraficosDashboard />
     </section>
   )
 }

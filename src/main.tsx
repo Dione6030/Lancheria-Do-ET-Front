@@ -14,6 +14,7 @@ import MeusPedidos from './MeusPedidos.tsx'
 import AdminLayout from './admin/AdminLayout.tsx'
 import AdminDashboard from './admin/AdminDashboard.tsx'
 import CadastroLanches from './admin/CadastroLanches.tsx'
+import ControlePedidos from './admin/ControlePedidos.tsx'
 
 import { Layout } from './Layout.tsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
@@ -24,7 +25,8 @@ const rotas = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <AdminDashboard /> },
-      { path: 'cadastro-lanches', element: <CadastroLanches /> }
+      { path: 'cadastro-lanches', element: <CadastroLanches /> },
+      { path: 'pedidos', element: <ControlePedidos /> }
     ]
   },
   {
