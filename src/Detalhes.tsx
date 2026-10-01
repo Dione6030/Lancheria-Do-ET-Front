@@ -5,6 +5,9 @@ import { useClienteStore } from "./context/ClienteContext";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { TabelaNutricional } from "./components/TabelaNutricional";
+import type { TabelaNutricionalType } from "./util/TabelaNutricionalType";
+
 const apiUrl = import.meta.env.VITE_API_URL;
 
 type Inputs = {
@@ -37,6 +40,16 @@ async function buscaPerfil(): Promise<PerfilType | null> {
   if (!response.ok) return null;
   return response.json();
 }
+async function buscaTabelaNutricional(
+  id: number,
+): Promise<TabelaNutricionalType | null> {
+  const response = await fetch(`${apiUrl}/lanches/${id}/tabela-nutricional`);
+
+  if (!response.ok) return null;
+
+  const dados = await response.json();
+  return dados.tabelaNutricional;
+}
 
 export default function Detalhes() {
   const params = useParams();
@@ -46,6 +59,7 @@ export default function Detalhes() {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [perfil, setPerfil] = useState<PerfilType | null>(null);
+  const [tabela, setTabela] = useState<TabelaNutricionalType | null>(null);
   const { cliente } = useClienteStore();
 
   const { register, handleSubmit, reset } = useForm<Inputs>({
@@ -89,6 +103,17 @@ export default function Detalhes() {
       .then(setPerfil)
       .catch(() => setPerfil(null));
   }, [cliente.id]);
+
+  useEffect(() => {
+    if (!lanche || lanche.condimentos.length === 0) {
+      setTabela(null);
+      return;
+    }
+
+    buscaTabelaNutricional(lanche.id)
+      .then(setTabela)
+      .catch(() => setTabela(null));
+  }, [lanche]);
 
   async function enviaPedido(data: Inputs) {
     const token = localStorage.getItem("token");
@@ -206,6 +231,8 @@ export default function Detalhes() {
               </ul>
             </div>
           )}
+
+          {tabela && <TabelaNutricional tabela={tabela} />}
 
           {lanche && !lanche.disponivel ? (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
