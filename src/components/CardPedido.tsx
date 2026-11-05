@@ -1,4 +1,5 @@
 import type { PedidoType } from "../util/PedidoType"
+import { ROTULOS_STATUS, type StatusPedido } from "../util/StatusPedido"
 
 const rotulosPagamento: Record<PedidoType["pagamento"], string> = {
     PIX: "Pix",
@@ -28,7 +29,11 @@ function calculaTotal(pedido: PedidoType) {
     )
 }
 
-export function CardPedido({ data }: { data: PedidoType }) {
+export function CardPedido({
+    data,
+}: {
+    data: PedidoType & { status: StatusPedido }
+}) {
     return (
         <div className="overflow-hidden rounded-lg bg-claro-superficie shadow dark:border dark:border-escuro-ciano dark:bg-escuro-superficie">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-claro-form-border p-4 dark:border-escuro-form-border">
@@ -40,9 +45,14 @@ export function CardPedido({ data }: { data: PedidoType }) {
                         Feito em {formataData(data.data)}
                     </p>
                 </div>
-                <span className="rounded-full bg-claro-form-fundo px-3 py-1 text-xs font-semibold text-claro-texto dark:bg-escuro-form-fundo dark:text-escuro-texto">
-                    Pagar na entrega: {rotulosPagamento[data.pagamento]}
-                </span>
+                <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-claro-button-fundo px-3 py-1 text-xs font-semibold text-claro-button-texto dark:bg-escuro-button-fundo">
+                        {ROTULOS_STATUS[data.status]}
+                    </span>
+                    <span className="rounded-full bg-claro-form-fundo px-3 py-1 text-xs font-semibold text-claro-texto dark:bg-escuro-form-fundo dark:text-escuro-texto">
+                        Pagar na entrega: {rotulosPagamento[data.pagamento]}
+                    </span>
+</div>
             </div>
 
             <ul className="divide-y divide-claro-form-border dark:divide-escuro-form-border">
