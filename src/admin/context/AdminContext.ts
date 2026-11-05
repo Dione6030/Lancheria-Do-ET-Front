@@ -1,6 +1,7 @@
 import type { AdminType } from '../util/AdminType'
 import { dadosDoToken } from '../../util/token'
 import { create } from 'zustand'
+import { desconectaSocket } from '../../util/socket'
 
 function adminDoToken(token: string): AdminType | null {
     const dados = dadosDoToken(token)
@@ -29,6 +30,7 @@ export const useAdminStore = create<AdminStore>((set) => ({
     admin: adminInicial ?? {} as AdminType,
     logaAdmin: (adminLogado) => set({admin: adminLogado}),
     deslogaAdmin: () => {
+        desconectaSocket()
         localStorage.removeItem('token')
         set({admin: {} as AdminType})
     }

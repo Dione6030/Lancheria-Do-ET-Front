@@ -1,45 +1,48 @@
-import type { ClienteType } from '../util/ClienteType'
-import { dadosDoToken } from '../util/token'
-import { create } from 'zustand'
+import type { ClienteType } from "../util/ClienteType";
+import { dadosDoToken } from "../util/token";
+import { create } from "zustand";
+import { desconectaSocket } from "../util/socket";
 
 function clienteDoToken(token: string): ClienteType | null {
-    const dados = dadosDoToken(token)
+  const dados = dadosDoToken(token);
 
-    if (!dados || dados.nivelAcesso !== 'CLIENTE') {
-        return null
-    }
+  if (!dados || dados.nivelAcesso !== "CLIENTE") {
+    return null;
+  }
 
-    return {
-        id: dados.id,
-        email: dados.email,
-        nome: dados.email
-    }
+  return {
+    id: dados.id,
+    email: dados.email,
+    nome: dados.email,
+  };
 }
 
-const tokenSalvo = localStorage.getItem('token')
-const clienteInicial = tokenSalvo ? clienteDoToken(tokenSalvo) : null
+const tokenSalvo = localStorage.getItem("token");
+const clienteInicial = tokenSalvo ? clienteDoToken(tokenSalvo) : null;
 
 type ClienteStore = {
-    cliente: ClienteType
-    logaCliente: (token: string) => boolean
-    deslogaCliente: () => void
-}
+  cliente: ClienteType;
+  logaCliente: (token: string) => boolean;
+  deslogaCliente: () => void;
+};
 
 export const useClienteStore = create<ClienteStore>((set) => ({
-    cliente: clienteInicial ?? {} as ClienteType,
-    logaCliente: (token) => {
-        const cliente = clienteDoToken(token)
+  cliente: clienteInicial ?? ({} as ClienteType),
+  logaCliente: (token) => {
+    desconectaSocket();
+    const cliente = clienteDoToken(token);
 
-        if (!cliente) {
-            return false
-        }
-
-        localStorage.setItem('token', token)
-        set({ cliente })
-        return true
-    },
-    deslogaCliente: () => {
-        localStorage.removeItem('token')
-        set({ cliente: {} as ClienteType })
+    if (!cliente) {
+      return false;
     }
-}))
+
+    localStorage.setItem("token", token);
+    set({ cliente });
+    return true;
+  },
+  deslogaCliente: () => {
+    desconectaSocket();
+    localStorage.removeItem("token");
+    set({ cliente: {} as ClienteType });
+  },
+}));
