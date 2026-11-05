@@ -2,7 +2,10 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useClienteStore } from "./context/ClienteContext"
 import { CardPedido } from "./components/CardPedido"
+import { useCallback } from "react"
+import { useSocketEvento } from "./util/useSocketEvent"
 import type { PedidoType } from "./util/PedidoType"
+import type { StatusPedido } from "./util/StatusPedido"
 
 const apiUrl = import.meta.env.VITE_API_URL
 
@@ -32,6 +35,15 @@ export default function MeusPedidos() {
     const [pedidos, setPedidos] = useState<PedidoType[]>([])
     const [carregando, setCarregando] = useState(true)
     const [erro, setErro] = useState<string | null>(null)
+
+    const atualizaStatus = useCallback(
+        ({ id, status }: { id: number; status: StatusPedido }) => {
+            setPedidos((atual) => atual.map((p) => (p.id === id ? { ...p, status } : p)))
+        },
+        [],
+    )
+
+    useSocketEvento("pedido:status", atualizaStatus, Boolean(cliente.id))
 
     useEffect(() => {
         if (!cliente.id) {
@@ -66,7 +78,10 @@ export default function MeusPedidos() {
         return (
             <div className="flex flex-col gap-4">
                 {pedidos.map((pedido) => (
-                    <CardPedido key={pedido.id} data={pedido} />
+                    <CardPedido
+                        key={pedido.id}
+                        data={pedido as PedidoType & { status: StatusPedido }}
+                    />
                 ))}
             </div>
         )
