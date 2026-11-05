@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
-import { IoCheckmarkCircle, IoCheckmarkCircleOutline, IoCloseCircleOutline } from "react-icons/io5";
+import { useSocketEvento } from "../util/useSocketEvent";
+import { useCallback } from "react";
+import { ROTULOS_STATUS, type StatusPedido } from "../util/StatusPedido";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -12,14 +14,10 @@ type Pagamento = "PIX" | "CARTAO_DEBITO" | "CARTAO_CREDITO" | "DINHEIRO";
 type PedidoType = {
   id: number;
   pagamento: Pagamento;
-  entregue: boolean;
+  status: StatusPedido;
   itens: { id: number; quantidade: number; item: { nome: string } }[];
   clienteTabela: { nome: string; endereco: string };
 };
-
-type AcaoPedido = "entregar" | "recusar";
-
-type ResultadoAcao = { emailEnviado: boolean };
 
 const ROTULOS_PAGAMENTO: Record<Pagamento, string> = {
   PIX: "Pix",
@@ -46,8 +44,21 @@ function temaEscuroAtivo() {
 }
 
 // Pendentes primeiro; a ordem por data (mais recente) é mantida dentro de cada grupo
+const finalizado = (p: PedidoType) =>
+  p.status === "ENTREGUE" || p.status === "CANCELADO";
+
+const TRANSICOES: Record<string, StatusPedido[]> = {
+  RECEBIDO: ["EM_PREPARO", "CANCELADO"] as StatusPedido[],
+  EM_PREPARO: ["SAIU_PARA_ENTREGA", "CANCELADO"] as StatusPedido[],
+  SAIU_PARA_ENTREGA: ["ENTREGUE", "CANCELADO"] as StatusPedido[],
+  ENTREGUE: [],
+  CANCELADO: [],
+};
+
 function pendentesPrimeiro(pedidos: PedidoType[]) {
-  return [...pedidos].sort((a, b) => Number(a.entregue) - Number(b.entregue));
+  return [...pedidos].sort(
+    (a, b) => Number(finalizado(a)) - Number(finalizado(b)),
+  );
 }
 
 // ---------- Chamadas à API ----------
@@ -64,25 +75,25 @@ async function buscarPedidos(): Promise<PedidoType[]> {
   return response.json();
 }
 
-async function enviarAcao(id: number, acao: AcaoPedido): Promise<ResultadoAcao | null> {
+// ---------- Confirmações e avisos ----------
+
+async function atualizarStatus(
+  id: number,
+  status: StatusPedido,
+): Promise<boolean> {
   try {
-    const response = await fetch(`${apiUrl}/admin/pedidos/${id}/${acao}`, {
-      method: acao === "entregar" ? "PATCH" : "DELETE",
+    const response = await fetch(`${apiUrl}/admin/pedidos/${id}/status`, {
+      method: "PATCH",
       headers: cabecalhoAutorizado(),
+      body: JSON.stringify({ status }),
     });
-
-    if (!response.ok) {
-      throw new Error();
-    }
-
-    return response.json();
+    if (!response.ok) throw new Error();
+    return true;
   } catch {
-    toast.error("Não foi possível concluir a ação. Tente novamente.");
-    return null;
+    toast.error("Não foi possível atualizar o status. Tente novamente.");
+    return false;
   }
 }
-
-// ---------- Confirmações e avisos ----------
 
 async function confirmarAcao(opcoes: {
   titulo: string;
@@ -107,32 +118,6 @@ async function confirmarAcao(opcoes: {
   return isConfirmed;
 }
 
-function confirmarEntrega(pedido: PedidoType) {
-  return confirmarAcao({
-    titulo: "Marcar como enviado?",
-    texto: `${pedido.clienteTabela.nome} receberá um e-mail avisando que o pedido foi enviado.`,
-    textoBotao: "Marcar como enviado",
-    corBotao: "#16A34A",
-  });
-}
-
-function confirmarRecusa(pedido: PedidoType) {
-  return confirmarAcao({
-    titulo: "Excluir pedido?",
-    texto: `O pedido será removido e ${pedido.clienteTabela.nome} receberá um e-mail avisando que foi recusado.`,
-    textoBotao: "Excluir",
-    corBotao: "#D6284B",
-  });
-}
-
-function avisarResultado(resultado: ResultadoAcao, mensagemSucesso: string) {
-  if (resultado.emailEnviado) {
-    toast.success(`${mensagemSucesso} E-mail enviado ao cliente.`);
-  } else {
-    toast.warning(`${mensagemSucesso} Mas não foi possível enviar o e-mail ao cliente.`);
-  }
-}
-
 // ---------- Componente ----------
 
 export default function ControlePedidos() {
@@ -150,24 +135,38 @@ export default function ControlePedidos() {
     carregarPedidos();
   }, []);
 
-  async function marcarComoEnviado(pedido: PedidoType) {
-    if (!(await confirmarEntrega(pedido))) return;
+  const insereNovo = useCallback((novo: PedidoType) => {
+    setPedidos((atual) =>
+      atual.some((p) => p.id === novo.id) ? atual : [novo, ...atual],
+    );
+    toast.info(`Novo pedido #${novo.id}`);
+  }, []);
 
-    const resultado = await enviarAcao(pedido.id, "entregar");
-    if (!resultado) return;
+  const atualizaStatus = useCallback(
+    ({ id, status }: { id: number; status: StatusPedido }) => {
+      setPedidos((atual) =>
+        pendentesPrimeiro(
+          atual.map((p) => (p.id === id ? { ...p, status } : p)),
+        ),
+      );
+    },
+    [],
+  );
 
-    avisarResultado(resultado, "Pedido marcado como enviado.");
-    carregarPedidos();
-  }
+  useSocketEvento("pedido:novo", insereNovo, true);
+  useSocketEvento("pedido:status", atualizaStatus, true);
 
-  async function excluirPedido(pedido: PedidoType) {
-    if (!(await confirmarRecusa(pedido))) return;
-
-    const resultado = await enviarAcao(pedido.id, "recusar");
-    if (!resultado) return;
-
-    avisarResultado(resultado, "Pedido excluído.");
-    carregarPedidos();
+  async function mudarStatus(pedido: PedidoType, novo: StatusPedido) {
+    if (novo === "CANCELADO") {
+      const ok = await confirmarAcao({
+        titulo: "Cancelar pedido?",
+        texto: `O pedido #${pedido.id} será marcado como cancelado.`,
+        textoBotao: "Cancelar pedido",
+        corBotao: "#D6284B",
+      });
+      if (!ok) return;
+    }
+    await atualizarStatus(pedido.id, novo);
   }
 
   return (
@@ -183,13 +182,14 @@ export default function ControlePedidos() {
               <th className="p-4">Item</th>
               <th className="p-4">Localização</th>
               <th className="p-4">Pagamento</th>
+              <th className="p-4">Status</th>
               <th className="p-4">Ações</th>
             </tr>
           </thead>
           <tbody>
             {pedidos.length === 0 && (
               <tr>
-                <td colSpan={4} className="p-6 text-center">
+                <td colSpan={5} className="p-6 text-center">
                   Nenhum pedido recebido ainda.
                 </td>
               </tr>
@@ -209,33 +209,20 @@ export default function ControlePedidos() {
                 </td>
                 <td className="p-4">{pedido.clienteTabela.endereco}</td>
                 <td className="p-4">{ROTULOS_PAGAMENTO[pedido.pagamento]}</td>
+                <td className="p-4">{ROTULOS_STATUS[pedido.status]}</td>
                 <td className="p-4">
-                  {pedido.entregue ? (
-                    <span title="Pedido enviado" className="text-3xl text-green-500">
-                      <IoCheckmarkCircle />
-                    </span>
-                  ) : (
-                    <div className="flex items-center gap-2 text-2xl">
+                  <div className="flex flex-wrap gap-2">
+                    {TRANSICOES[pedido.status].map((prox) => (
                       <button
+                        key={prox}
                         type="button"
-                        title="Excluir pedido"
-                        aria-label={`Excluir pedido ${pedido.id}`}
-                        onClick={() => excluirPedido(pedido)}
-                        className="text-claro-erro dark:text-escuro-erro"
+                        onClick={() => mudarStatus(pedido, prox)}
+                        className="rounded-lg border border-claro-button-border px-3 py-1 text-xs dark:border-escuro-button-border"
                       >
-                        <IoCloseCircleOutline />
+                        {ROTULOS_STATUS[prox]}
                       </button>
-                      <button
-                        type="button"
-                        title="Marcar como enviado"
-                        aria-label={`Marcar pedido ${pedido.id} como enviado`}
-                        onClick={() => marcarComoEnviado(pedido)}
-                        className="text-green-500"
-                      >
-                        <IoCheckmarkCircleOutline />
-                      </button>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </td>
               </tr>
             ))}
